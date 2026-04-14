@@ -1,0 +1,25 @@
+{
+  "work_items": [
+    {
+      "code": "analysis",
+      "label": "Business process analysis"
+    },
+    {
+      "code": "implementation",
+      "label": "Implementation and integration services"
+    },
+    {
+      "code": "quality_assurance",
+      "label": "Quality assurance and validation"
+    },
+    {
+      "code": "documentation",
+      "label": "Technical documentation delivery"
+    },
+    {
+      "code": "support",
+      "label": "Post-delivery support activities"
+    }
+  ]
+}
+

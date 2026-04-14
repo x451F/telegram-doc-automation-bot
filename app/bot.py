@@ -12,6 +12,7 @@ from aiogram.enums.parse_mode import ParseMode
 
 from app.config import load_settings
 from app.handlers import register_handlers
+from app.services.work_items import load_work_items_catalog
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,8 @@ async def run_bot() -> None:
     settings.storage.output_dir.mkdir(parents=True, exist_ok=True)
     settings.storage.templates_dir.mkdir(parents=True, exist_ok=True)
     settings.storage.data_dir.mkdir(parents=True, exist_ok=True)
+    work_item_catalog = load_work_items_catalog(settings.storage.work_items_file)
+    logger.info("Loaded %d work item options.", len(work_item_catalog))
 
     parse_mode = ParseMode(settings.bot.parse_mode)
     bot = Bot(
@@ -45,7 +48,11 @@ async def run_bot() -> None:
     register_handlers(dispatcher)
 
     logger.info("Starting Telegram bot polling.")
-    await dispatcher.start_polling(bot)
+    await dispatcher.start_polling(
+        bot,
+        settings=settings,
+        work_item_catalog=work_item_catalog,
+    )
 
 
 def main() -> None:
@@ -58,4 +65,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

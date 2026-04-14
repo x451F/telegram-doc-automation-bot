@@ -4,12 +4,12 @@ from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 
 def build_main_menu() -> ReplyKeyboardMarkup:
-    """Return a small default keyboard for the first milestone."""
+    """Return a reply keyboard with workflow entry actions."""
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Create Document")],
+            [KeyboardButton(text="Start Intake Workflow")],
+            [KeyboardButton(text="Cancel Workflow")],
             [KeyboardButton(text="Help")],
         ],
         resize_keyboard=True,
     )
-

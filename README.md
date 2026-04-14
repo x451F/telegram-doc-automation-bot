@@ -12,18 +12,27 @@ This public version is a generalized rewrite of a private internal prototype. Se
 
 ## Features (Current Milestone)
 
-- aiogram 3 bot bootstrap with modular structure
-- FSM state definitions for multi-step document workflows
-- Utility services for date and text normalization
+- aiogram 3 FSM intake flow for document payload collection
+- Dynamic work item catalog loaded from JSON configuration
+- Inline presets for document numbers, dates, counts, and amounts
+- Back/cancel navigation across conversation steps
+- Optional admin allowlist via environment configuration
+- Utility services for date/text normalization and validation
 - Environment-based configuration (`.env`)
 - Optional feature flags for PDF conversion and ZIP export
 
-## Planned Workflow
+## Workflow
 
-1. User starts a conversation in Telegram.
-2. Bot collects fields in a multi-step FSM flow (`contract_number`, `contract_date`, `certificate_number`, `work_items`).
-3. Service layer renders DOCX output from selected templates.
-4. Optional conversion/export pipeline creates PDF and ZIP artifacts.
+1. Start the flow with `/new` or `Start Intake Workflow`.
+2. Choose document type: `service_agreement` or `completion_certificate`.
+3. Provide `contract_number` and `contract_date`.
+4. Provide `work_item_count`, then fill `work_items` from presets or custom input.
+5. Provide `contract_total_amount` and `net_amount`.
+6. Provide `certificate_number` and `certificate_date`.
+7. Provide `amount_in_words`.
+8. Review and submit the collected payload.
+
+The workflow is intentionally generic and keeps document generation concerns in the service layer, not in Telegram handlers.
 
 ## Project Structure
 
@@ -62,4 +71,3 @@ python -m mypy app
 ## License
 
 MIT
-
