@@ -1,0 +1,42 @@
+[project]
+name = "telegram-docx-workflow-bot"
+version = "0.1.0"
+description = "Reusable Telegram bot for DOCX template workflows with optional PDF and ZIP export."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Open Source Maintainer" }
+]
+dependencies = [
+  "aiogram>=3.6.0,<4.0.0",
+  "python-dotenv>=1.0.1,<2.0.0",
+  "python-docx>=1.1.2,<2.0.0",
+]
+
+[project.optional-dependencies]
+pdf = [
+  "docx2pdf>=0.1.8,<1.0.0",
+]
+dev = [
+  "pytest>=8.2.0,<9.0.0",
+  "ruff>=0.6.0,<1.0.0",
+  "mypy>=1.11.0,<2.0.0",
+]
+
+[project.scripts]
+telegram-docx-workflow-bot = "app.bot:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
