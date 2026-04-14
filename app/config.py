@@ -59,6 +59,7 @@ class StorageSettings:
     templates_dir: Path
     data_dir: Path
     work_items_file: Path
+    working_dir_prefix: str
 
 
 @dataclass(slots=True, frozen=True)
@@ -71,6 +72,8 @@ class DocumentSettings:
 class FeatureFlags:
     enable_pdf_conversion: bool
     enable_zip_export: bool
+    pdf_backend: str
+    cleanup_temp_files: bool
 
 
 @dataclass(slots=True, frozen=True)
@@ -107,11 +110,14 @@ def load_settings(env_file: str | Path | None = ".env") -> AppSettings:
     work_items_file = Path(
         os.getenv("WORK_ITEMS_FILE", project_root / "app" / "data" / "work_items.example.json")
     ).resolve()
+    working_dir_prefix = os.getenv("WORKING_DIR_PREFIX", "job")
 
     allowed_extensions = _parse_extensions(os.getenv("ALLOWED_TEMPLATE_EXTENSIONS"))
     default_city = os.getenv("DEFAULT_CITY", "Sample City")
     enable_pdf = _parse_bool(os.getenv("ENABLE_PDF_CONVERSION"), default=False)
     enable_zip = _parse_bool(os.getenv("ENABLE_ZIP_EXPORT"), default=True)
+    pdf_backend = os.getenv("PDF_BACKEND", "auto")
+    cleanup_temp_files = _parse_bool(os.getenv("CLEANUP_TEMP_FILES"), default=True)
     admin_allowlist = _parse_int_set(os.getenv("ADMIN_ALLOWLIST"))
 
     return AppSettings(
@@ -121,6 +127,7 @@ def load_settings(env_file: str | Path | None = ".env") -> AppSettings:
             templates_dir=templates_dir,
             data_dir=data_dir,
             work_items_file=work_items_file,
+            working_dir_prefix=working_dir_prefix,
         ),
         documents=DocumentSettings(
             allowed_template_extensions=allowed_extensions,
@@ -129,6 +136,8 @@ def load_settings(env_file: str | Path | None = ".env") -> AppSettings:
         features=FeatureFlags(
             enable_pdf_conversion=enable_pdf,
             enable_zip_export=enable_zip,
+            pdf_backend=pdf_backend,
+            cleanup_temp_files=cleanup_temp_files,
         ),
         access=AccessSettings(admin_allowlist=admin_allowlist),
         log_level=log_level,

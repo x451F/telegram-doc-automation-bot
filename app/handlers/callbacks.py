@@ -36,8 +36,9 @@ from app.keyboards.workflow import (
     WORK_ITEM_CUSTOM,
     WORK_ITEM_PREFIX,
 )
-from app.services.document_generator import DocumentGenerationError, generate_documents
 from app.services.access_control import ensure_callback_access
+from app.services.export_service import ExportPreparationError, prepare_export_bundle
+from app.services.file_service import remove_path
 from app.services.payloads import build_payload
 from app.services.validation import parse_date_input, parse_decimal_amount, parse_non_empty_text
 from app.services.work_items import WorkItemOption
@@ -416,39 +417,58 @@ async def handle_submit_payload_callback(
     payload = build_payload(data)
     logger.info("Collected payload submitted for document_type=%s", payload.document_type)
 
+    bundle = None
     try:
-        generated_files = generate_documents(
+        bundle = await prepare_export_bundle(
             payload=payload,
-            templates_dir=settings.storage.templates_dir,
-            output_dir=settings.storage.output_dir,
-            city=settings.documents.default_city,
+            settings=settings,
         )
-    except (DocumentGenerationError, FileNotFoundError) as exc:
-        logger.exception("Document generation failed: %s", exc)
+        await state.clear()
+        await callback.answer("Payload submitted.")
+
         message = _get_callback_message(callback)
         if message is not None:
             await message.answer(
-                "Payload collected, but document generation failed. "
-                "Check template files and project dependencies."
+                "Payload collected and export files prepared.",
+                reply_markup=build_main_menu(),
+            )
+            for document_path in bundle.docx_files:
+                await message.answer_document(
+                    FSInputFile(document_path),
+                    caption=f"Generated DOCX: {document_path.name}",
+                )
+            for pdf_path in bundle.pdf_files:
+                await message.answer_document(
+                    FSInputFile(pdf_path),
+                    caption=f"Generated PDF: {pdf_path.name}",
+                )
+            if bundle.archive_file is not None:
+                await message.answer_document(
+                    FSInputFile(bundle.archive_file),
+                    caption=f"ZIP archive: {bundle.archive_file.name}",
+                )
+            for note in bundle.notes:
+                await message.answer(note)
+    except ExportPreparationError as exc:
+        logger.exception("Export preparation failed: %s", exc)
+        message = _get_callback_message(callback)
+        if message is not None:
+            await message.answer(
+                "Payload was collected, but file generation failed. "
+                "Please verify templates and dependencies, then try again."
             )
         await callback.answer("Generation failed.", show_alert=True)
         await state.clear()
-        return
-
-    await state.clear()
-    await callback.answer("Payload submitted.")
-
-    message = _get_callback_message(callback)
-    if message is not None:
-        await message.answer(
-            "Payload collected and DOCX files generated.",
-            reply_markup=build_main_menu(),
-        )
-        await message.answer_document(
-            FSInputFile(generated_files.contract_path),
-            caption="Generated Service Agreement",
-        )
-        await message.answer_document(
-            FSInputFile(generated_files.completion_certificate_path),
-            caption="Generated Completion Certificate",
-        )
+    except Exception:
+        logger.exception("Unexpected error while sending export files.")
+        message = _get_callback_message(callback)
+        if message is not None:
+            await message.answer(
+                "Files were generated, but delivery in Telegram failed. "
+                "Please retry the workflow."
+            )
+        await callback.answer("Delivery failed.", show_alert=True)
+        await state.clear()
+    finally:
+        if bundle is not None and settings.features.cleanup_temp_files:
+            await remove_path(bundle.working_directory)

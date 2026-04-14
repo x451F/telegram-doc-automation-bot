@@ -12,6 +12,7 @@ from aiogram.enums.parse_mode import ParseMode
 
 from app.config import load_settings
 from app.handlers import register_handlers
+from app.services.file_service import ensure_directory
 from app.services.work_items import load_work_items_catalog
 
 
@@ -23,7 +24,12 @@ def configure_logging(log_level: str) -> None:
     numeric_level = getattr(logging, log_level.upper(), logging.INFO)
     logging.basicConfig(
         level=numeric_level,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        format=(
+            "ts=%(asctime)s "
+            "level=%(levelname)s "
+            "logger=%(name)s "
+            "message=%(message)s"
+        ),
         stream=sys.stdout,
     )
 
@@ -33,9 +39,9 @@ async def run_bot() -> None:
     settings = load_settings()
     configure_logging(settings.log_level)
 
-    settings.storage.output_dir.mkdir(parents=True, exist_ok=True)
-    settings.storage.templates_dir.mkdir(parents=True, exist_ok=True)
-    settings.storage.data_dir.mkdir(parents=True, exist_ok=True)
+    await ensure_directory(settings.storage.output_dir)
+    await ensure_directory(settings.storage.templates_dir)
+    await ensure_directory(settings.storage.data_dir)
     work_item_catalog = load_work_items_catalog(settings.storage.work_items_file)
     logger.info("Loaded %d work item options.", len(work_item_catalog))
 

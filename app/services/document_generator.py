@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, TYPE_CHECKING
@@ -14,6 +15,9 @@ if TYPE_CHECKING:
     from docx.document import Document as DocxDocument
     from docx.table import Table
     from docx.text.paragraph import Paragraph
+
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentGenerationError(RuntimeError):
@@ -104,6 +108,7 @@ def render_docx_template(
         _render_document(document, placeholders)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         document.save(str(output_path))
+        logger.info("Rendered DOCX template=%s output=%s", template_path.name, output_path.name)
     except Exception as exc:
         raise DocumentGenerationError(f"Failed to render template: {template_path}") from exc
 
@@ -149,4 +154,3 @@ def generate_documents(
         contract_path=contract_output_path,
         completion_certificate_path=certificate_output_path,
     )
-
