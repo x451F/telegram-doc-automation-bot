@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from app.config import AppSettings
+from app.handlers.workflow_helpers import append_work_item_and_continue
 from app.handlers.prompts import (
     ask_amount_in_words,
     ask_certificate_date,
@@ -35,41 +34,6 @@ from app.states import DocumentWorkflowStates
 
 
 router = Router(name="messages")
-
-
-def _get_required_work_items(data: dict[str, Any]) -> int:
-    raw_count = data.get("work_item_count", 1)
-    try:
-        return max(1, int(raw_count))
-    except (TypeError, ValueError):
-        return 1
-
-
-async def _append_work_item_and_continue(
-    message: Message,
-    state: FSMContext,
-    work_item_text: str,
-    work_item_catalog: tuple[WorkItemOption, ...],
-) -> None:
-    data = await state.get_data()
-    selected_items = list(data.get("work_items", []))
-    required_items = _get_required_work_items(data)
-
-    selected_items.append(work_item_text)
-    await state.update_data(work_items=selected_items)
-
-    if len(selected_items) >= required_items:
-        await state.set_state(DocumentWorkflowStates.entering_contract_total_amount)
-        await ask_contract_total_amount(message)
-        return
-
-    await state.set_state(DocumentWorkflowStates.choosing_work_item)
-    await ask_work_item(
-        message=message,
-        options=work_item_catalog,
-        selected_count=len(selected_items),
-        required_count=required_items,
-    )
 
 
 @router.message(DocumentWorkflowStates.choosing_document_type)
@@ -167,7 +131,7 @@ async def handle_work_item_text(
         await message.answer(str(exc))
         return
 
-    await _append_work_item_and_continue(
+    await append_work_item_and_continue(
         message=message,
         state=state,
         work_item_text=value,
@@ -192,7 +156,7 @@ async def handle_custom_work_item(
         await ask_custom_work_item(message)
         return
 
-    await _append_work_item_and_continue(
+    await append_work_item_and_continue(
         message=message,
         state=state,
         work_item_text=value,

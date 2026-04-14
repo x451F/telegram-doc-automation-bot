@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from app.config import AppSettings
+from app.handlers.workflow_helpers import get_callback_message, get_required_work_items
 from app.handlers.prompts import (
     ask_amount_in_words,
     ask_certificate_date,
@@ -30,21 +29,6 @@ from app.states import DocumentWorkflowStates
 
 
 router = Router(name="navigation")
-
-
-def _get_callback_message(callback: CallbackQuery) -> Message | None:
-    message = callback.message
-    if isinstance(message, Message):
-        return message
-    return None
-
-
-def _get_required_work_items(data: dict[str, Any]) -> int:
-    raw_count = data.get("work_item_count", 1)
-    try:
-        return max(1, int(raw_count))
-    except (TypeError, ValueError):
-        return 1
 
 
 async def _navigate_back(
@@ -84,7 +68,7 @@ async def _navigate_back(
             removed_item = selected_items.pop()
             await state.update_data(work_items=selected_items)
             await message.answer(f"Removed: {removed_item}")
-            required_items = _get_required_work_items(data)
+            required_items = get_required_work_items(data)
             await ask_work_item(
                 message=message,
                 options=work_item_catalog,
@@ -99,7 +83,7 @@ async def _navigate_back(
 
     if current_state == DocumentWorkflowStates.entering_custom_work_item.state:
         await state.set_state(DocumentWorkflowStates.choosing_work_item)
-        required_items = _get_required_work_items(data)
+        required_items = get_required_work_items(data)
         selected_items = list(data.get("work_items", []))
         await ask_work_item(
             message=message,
@@ -115,7 +99,7 @@ async def _navigate_back(
             selected_items.pop()
             await state.update_data(work_items=selected_items)
         await state.set_state(DocumentWorkflowStates.choosing_work_item)
-        required_items = _get_required_work_items(data)
+        required_items = get_required_work_items(data)
         await ask_work_item(
             message=message,
             options=work_item_catalog,
@@ -171,7 +155,7 @@ async def handle_cancel_callback(
         return
     await callback.answer()
     await state.clear()
-    message = _get_callback_message(callback)
+    message = get_callback_message(callback)
     if message is not None:
         await message.answer("Workflow cancelled.", reply_markup=build_main_menu())
 
@@ -187,7 +171,7 @@ async def handle_back_callback(
     if not await ensure_callback_access(callback, settings):
         return
     await callback.answer()
-    message = _get_callback_message(callback)
+    message = get_callback_message(callback)
     if message is None:
         return
     await _navigate_back(message=message, state=state, work_item_catalog=work_item_catalog)
