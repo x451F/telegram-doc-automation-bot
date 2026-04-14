@@ -64,6 +64,7 @@ class StorageSettings:
 @dataclass(slots=True, frozen=True)
 class DocumentSettings:
     allowed_template_extensions: tuple[str, ...]
+    default_city: str
 
 
 @dataclass(slots=True, frozen=True)
@@ -108,6 +109,7 @@ def load_settings(env_file: str | Path | None = ".env") -> AppSettings:
     ).resolve()
 
     allowed_extensions = _parse_extensions(os.getenv("ALLOWED_TEMPLATE_EXTENSIONS"))
+    default_city = os.getenv("DEFAULT_CITY", "Sample City")
     enable_pdf = _parse_bool(os.getenv("ENABLE_PDF_CONVERSION"), default=False)
     enable_zip = _parse_bool(os.getenv("ENABLE_ZIP_EXPORT"), default=True)
     admin_allowlist = _parse_int_set(os.getenv("ADMIN_ALLOWLIST"))
@@ -120,7 +122,10 @@ def load_settings(env_file: str | Path | None = ".env") -> AppSettings:
             data_dir=data_dir,
             work_items_file=work_items_file,
         ),
-        documents=DocumentSettings(allowed_template_extensions=allowed_extensions),
+        documents=DocumentSettings(
+            allowed_template_extensions=allowed_extensions,
+            default_city=default_city,
+        ),
         features=FeatureFlags(
             enable_pdf_conversion=enable_pdf,
             enable_zip_export=enable_zip,

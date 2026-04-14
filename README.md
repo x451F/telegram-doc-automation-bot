@@ -2,9 +2,15 @@
 
 Telegram bot project built with Python and aiogram 3 for reusable document workflows based on DOCX templates.
 
+## Project Background
+
+This repository is a public-safe generalized rewrite of a private client project that I originally developed for document workflow automation.
+
+The original implementation included client-specific business rules, personalized templates, and private operational details. This public version was redesigned to preserve the reusable technical architecture while removing all sensitive and domain-specific content.
+
 ## Public Repository Intent
 
-This repository is designed as a generalized document automation bot that can be reused across different teams and domains. It focuses on configurable placeholders, multi-step data collection, and export-friendly outputs rather than any domain-specific business process.
+This repository is designed as a reusable document automation bot that can be adapted across different teams and domains. It focuses on configurable placeholders, multi-step data collection, template-driven document generation, and export-friendly outputs rather than any client-specific business process.
 
 ## Migration Note
 
@@ -33,6 +39,37 @@ This public version is a generalized rewrite of a private internal prototype. Se
 8. Review and submit the collected payload.
 
 The workflow is intentionally generic and keeps document generation concerns in the service layer, not in Telegram handlers.
+
+## Templates and placeholders
+
+Template files are stored in `app/templates`:
+
+- `contract_template.docx`
+- `completion_certificate_template.docx`
+
+Readable template drafts are stored in `docs/templates`:
+
+- `contract_template.md`
+- `completion_certificate_template.md`
+
+The generator replaces placeholders in both paragraphs and table cells.
+Output `.docx` files are written to the configured `OUTPUT_DIR` (default: `./output`) with deterministic filenames.
+
+### Placeholder reference
+
+| Placeholder | Description |
+|---|---|
+| `[contract_number]` | Service agreement number |
+| `[contract_date]` | Service agreement date |
+| `[city]` | City label from configuration (`DEFAULT_CITY`) |
+| `[contract_total_amount]` | Contract total amount |
+| `[net_amount]` | Net amount |
+| `[certificate_number]` | Completion certificate number |
+| `[certificate_date]` | Completion certificate date |
+| `[certificate_amount]` | Certificate amount value |
+| `[certificate_amount_text]` | Certificate amount in words |
+| `[contract_work_1]` ... `[contract_work_5]` | Agreement work item lines |
+| `[certificate_work_1]` ... `[certificate_work_5]` | Certificate work item lines |
 
 ## Project Structure
 
