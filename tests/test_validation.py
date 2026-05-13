@@ -32,4 +32,3 @@ def test_parse_date_input() -> None:
     assert parse_date_input("2026-04-14", "date") == "2026-04-14"
     with pytest.raises(ValueError):
         parse_date_input("2026/14/14", "date")
-

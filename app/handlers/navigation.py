@@ -8,7 +8,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from app.config import AppSettings
-from app.handlers.workflow_helpers import get_callback_message, get_required_work_items
 from app.handlers.prompts import (
     ask_amount_in_words,
     ask_certificate_date,
@@ -21,12 +20,12 @@ from app.handlers.prompts import (
     ask_work_item,
     ask_work_item_count,
 )
+from app.handlers.workflow_helpers import get_callback_message, get_required_work_items
 from app.keyboards.main_menu import build_main_menu
 from app.keyboards.workflow import NAV_BACK, NAV_CANCEL
 from app.services.access_control import ensure_callback_access, ensure_message_access
 from app.services.work_items import WorkItemOption
 from app.states import DocumentWorkflowStates
-
 
 router = Router(name="navigation")
 
@@ -40,7 +39,10 @@ async def _navigate_back(
     data = await state.get_data()
 
     if current_state is None:
-        await message.answer("No active workflow. Use /new to start.", reply_markup=build_main_menu())
+        await message.answer(
+            "No active workflow. Use /new to start.",
+            reply_markup=build_main_menu(),
+        )
         return
 
     if current_state == DocumentWorkflowStates.choosing_document_type.state:

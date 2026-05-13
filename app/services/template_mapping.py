@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from app.services.payloads import DocumentIntakePayload
 from app.services.text_utils import normalize_whitespace
 
-
 MAX_WORK_PLACEHOLDERS = 5
 DEFAULT_CITY = "Sample City"
 DEFAULT_CONTRACTOR_NAME = "Service Provider"
@@ -38,7 +37,9 @@ def _normalize_city(city: str | None) -> str:
 
 
 def _build_work_slots(work_items: tuple[str, ...], slots: int = MAX_WORK_PLACEHOLDERS) -> list[str]:
-    normalized_items = [normalize_whitespace(item) for item in work_items if normalize_whitespace(item)]
+    normalized_items = [
+        normalize_whitespace(item) for item in work_items if normalize_whitespace(item)
+    ]
     if len(normalized_items) <= slots:
         return normalized_items + [""] * (slots - len(normalized_items))
 

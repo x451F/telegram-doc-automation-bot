@@ -15,7 +15,6 @@ from app.handlers import register_handlers
 from app.services.file_service import ensure_directory
 from app.services.work_items import load_work_items_catalog
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -24,12 +23,7 @@ def configure_logging(log_level: str) -> None:
     numeric_level = getattr(logging, log_level.upper(), logging.INFO)
     logging.basicConfig(
         level=numeric_level,
-        format=(
-            "ts=%(asctime)s "
-            "level=%(levelname)s "
-            "logger=%(name)s "
-            "message=%(message)s"
-        ),
+        format=("ts=%(asctime)s level=%(levelname)s logger=%(name)s message=%(message)s"),
         stream=sys.stdout,
     )
 

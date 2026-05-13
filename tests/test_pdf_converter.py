@@ -11,4 +11,3 @@ def test_resolve_backend_order_docx2pdf() -> None:
 
 def test_resolve_backend_order_soffice() -> None:
     assert _resolve_backend_order("soffice") == (PDFBackend.SOFFICE, PDFBackend.DOCX2PDF)
-

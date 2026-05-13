@@ -18,4 +18,3 @@ def test_resolve_template_files_paths() -> None:
     assert templates.completion_certificate_template_path == Path(
         "/tmp/templates/completion_certificate_template.docx"
     )
-

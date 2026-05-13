@@ -7,14 +7,13 @@ import logging
 import shutil
 import subprocess
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
-
 
 logger = logging.getLogger(__name__)
 
 
-class PDFBackend(str, Enum):
+class PDFBackend(StrEnum):
     """Supported PDF conversion backends."""
 
     DOCX2PDF = "docx2pdf"
@@ -134,7 +133,12 @@ async def convert_documents_to_pdf(
     results: list[PDFConversionResult] = []
     for source_docx in docx_files:
         output_pdf = output_dir / f"{source_docx.stem}.pdf"
-        result = await asyncio.to_thread(_convert_single_sync, source_docx, output_pdf, backend_order)
+        result = await asyncio.to_thread(
+            _convert_single_sync,
+            source_docx,
+            output_pdf,
+            backend_order,
+        )
         if result.success:
             logger.info(
                 "PDF conversion succeeded source=%s backend=%s output=%s",
@@ -151,4 +155,3 @@ async def convert_documents_to_pdf(
         results.append(result)
 
     return tuple(results)
-

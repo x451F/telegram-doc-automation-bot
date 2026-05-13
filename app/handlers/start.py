@@ -11,7 +11,6 @@ from app.keyboards.main_menu import build_main_menu
 from app.services.access_control import ensure_message_access
 from app.states import DocumentWorkflowStates
 
-
 router = Router(name="start")
 
 

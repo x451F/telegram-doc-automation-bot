@@ -27,7 +27,8 @@ async def send_welcome(message: Message) -> None:
     await message.answer(
         (
             "Welcome to the document workflow bot.\n"
-            "Use the menu to start collecting fields for a service agreement or completion certificate."
+            "Use the menu to start collecting fields for a service agreement "
+            "or completion certificate."
         ),
         reply_markup=build_main_menu(),
     )
@@ -133,11 +134,7 @@ async def ask_amount_in_words(message: Message, suggested_value: str | None = No
     """Prompt for amount in words with optional auto-generated suggestion."""
     text = "Enter `amount_in_words` in plain English text."
     if suggested_value:
-        text = (
-            f"{text}\n"
-            f"Suggested value: {suggested_value}\n"
-            "Send `auto` to use the suggested text."
-        )
+        text = f"{text}\nSuggested value: {suggested_value}\nSend `auto` to use the suggested text."
     await message.answer(text, reply_markup=build_back_keyboard())
 
 

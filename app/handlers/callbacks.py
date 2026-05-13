@@ -10,12 +10,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
 
 from app.config import AppSettings
-from app.handlers.workflow_helpers import (
-    append_work_item_and_continue,
-    build_auto_amount_in_words,
-    get_callback_message,
-    move_to_review_with_auto_amount,
-)
 from app.handlers.prompts import (
     ask_certificate_date,
     ask_certificate_number,
@@ -25,6 +19,12 @@ from app.handlers.prompts import (
     ask_net_amount,
     ask_work_item,
     ask_work_item_count,
+)
+from app.handlers.workflow_helpers import (
+    append_work_item_and_continue,
+    build_auto_amount_in_words,
+    get_callback_message,
+    move_to_review_with_auto_amount,
 )
 from app.keyboards.main_menu import build_main_menu
 from app.keyboards.workflow import (
@@ -46,7 +46,6 @@ from app.services.payloads import build_payload
 from app.services.validation import parse_date_input, parse_decimal_amount, parse_non_empty_text
 from app.services.work_items import WorkItemOption
 from app.states import DocumentWorkflowStates
-
 
 logger = logging.getLogger(__name__)
 router = Router(name="callbacks")
@@ -76,9 +75,7 @@ async def handle_document_type_callback(
 
     payload = callback.data or ""
     document_type = (
-        "service_agreement"
-        if payload == DOC_TYPE_SERVICE_AGREEMENT
-        else "completion_certificate"
+        "service_agreement" if payload == DOC_TYPE_SERVICE_AGREEMENT else "completion_certificate"
     )
     await state.update_data(document_type=document_type)
     await state.set_state(DocumentWorkflowStates.entering_contract_number)
@@ -317,7 +314,9 @@ async def handle_amount_preset_callback(
 
     if current_state == DocumentWorkflowStates.entering_contract_total_amount.state:
         await state.update_data(contract_total_amount=f"{amount:.2f}")
-        await state.update_data(amount_in_words_auto=build_auto_amount_in_words(await state.get_data()))
+        await state.update_data(
+            amount_in_words_auto=build_auto_amount_in_words(await state.get_data())
+        )
         await state.set_state(DocumentWorkflowStates.entering_net_amount)
         await callback.answer("Contract total amount selected.")
         await ask_net_amount(message)
@@ -425,8 +424,7 @@ async def handle_submit_payload_callback(
         message = get_callback_message(callback)
         if message is not None:
             await message.answer(
-                "Files were generated, but delivery in Telegram failed. "
-                "Please retry the workflow."
+                "Files were generated, but delivery in Telegram failed. Please retry the workflow."
             )
         await callback.answer("Delivery failed.", show_alert=True)
         await state.clear()

@@ -9,7 +9,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.services.work_items import WorkItemOption
 
-
 NAV_BACK = "nav:back"
 NAV_CANCEL = "nav:cancel"
 NAV_SUBMIT = "nav:submit"
@@ -178,4 +177,3 @@ def build_review_keyboard() -> InlineKeyboardMarkup:
             _back_cancel_row(),
         ]
     )
-

@@ -9,4 +9,3 @@ def test_safe_filename_normalizes_and_truncates() -> None:
 def test_join_non_empty_skips_blank_items() -> None:
     items = [" first ", "", "   ", "second"]
     assert join_non_empty(items) == "first, second"
-

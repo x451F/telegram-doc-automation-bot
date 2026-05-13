@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from typing import Iterable
-
+from collections.abc import Iterable
 
 WHITESPACE_RE = re.compile(r"\s+")
 NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
@@ -35,4 +34,3 @@ def join_non_empty(items: Iterable[str], separator: str = ", ") -> str:
     """Join only non-empty normalized values into one display string."""
     prepared = [normalize_whitespace(item) for item in items if normalize_whitespace(item)]
     return separator.join(prepared)
-

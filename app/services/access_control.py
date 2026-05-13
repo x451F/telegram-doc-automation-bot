@@ -36,4 +36,3 @@ async def ensure_callback_access(callback: CallbackQuery, settings: AppSettings)
 
     await callback.answer("Access denied.", show_alert=True)
     return False
-

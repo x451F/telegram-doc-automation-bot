@@ -48,4 +48,3 @@ def parse_date_input(value: str, field_name: str) -> str:
     except ValueError as exc:
         raise ValueError(f"{field_name} must use YYYY-MM-DD, DD.MM.YYYY, or DD/MM/YYYY.") from exc
     return parsed.isoformat()
-

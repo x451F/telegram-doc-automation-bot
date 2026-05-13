@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_HALF_UP
-
+from decimal import ROUND_HALF_UP, Decimal
 
 _ONES = (
     "zero",
@@ -96,4 +95,3 @@ def amount_to_words(amount: Decimal) -> str:
     major_label = "currency unit" if major == 1 else "currency units"
     sentence = f"{major_words} {major_label} and {minor:02d} cents"
     return sentence[0].upper() + sentence[1:]
-

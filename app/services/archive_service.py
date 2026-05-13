@@ -10,7 +10,6 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from app.services.text_utils import safe_filename
 
-
 logger = logging.getLogger(__name__)
 
 

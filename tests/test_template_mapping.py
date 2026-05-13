@@ -26,7 +26,9 @@ def test_build_template_mapping_populates_expected_placeholders() -> None:
     assert mapping.contract["[city]"] == "Paris"
     assert mapping.contract["[contract_total_amount]"] == "1000.00"
     assert mapping.contract["[contractor_name]"] == "Service Provider"
-    assert mapping.completion_certificate["[certificate_amount_text]"] == "Nine hundred currency units"
+    assert (
+        mapping.completion_certificate["[certificate_amount_text]"] == "Nine hundred currency units"
+    )
 
 
 def test_build_template_mapping_fills_empty_work_slots() -> None:

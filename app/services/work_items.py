@@ -40,4 +40,3 @@ def load_work_items_catalog(path: Path) -> tuple[WorkItemOption, ...]:
         if option is not None:
             options.append(option)
     return tuple(options)
-

@@ -19,7 +19,6 @@ from app.services.payloads import DocumentIntakePayload
 from app.services.pdf_converter import convert_documents_to_pdf
 from app.services.text_utils import safe_filename
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -44,12 +43,10 @@ def _docx_paths_from_generated(generated: GeneratedDocumentPaths) -> tuple[Path,
 
 def _build_archive_stem(payload: DocumentIntakePayload) -> str:
     return safe_filename(
-        (
-            f"document-bundle-"
-            f"{payload.contract_number}-"
-            f"{payload.certificate_number}-"
-            f"{payload.contract_date}"
-        )
+        f"document-bundle-"
+        f"{payload.contract_number}-"
+        f"{payload.certificate_number}-"
+        f"{payload.contract_date}"
     )
 
 
@@ -73,7 +70,10 @@ async def prepare_export_bundle(
             settings.documents.default_city,
         )
     except (DocumentGenerationError, FileNotFoundError) as exc:
-        logger.exception("DOCX generation failed for payload document_type=%s", payload.document_type)
+        logger.exception(
+            "DOCX generation failed for payload document_type=%s",
+            payload.document_type,
+        )
         await remove_path(working_directory)
         raise ExportPreparationError("DOCX generation failed.") from exc
 
@@ -87,7 +87,9 @@ async def prepare_export_bundle(
             output_dir=working_directory,
             preferred_backend=settings.features.pdf_backend,
         )
-        pdf_files = tuple(result.output_pdf for result in conversion_results if result.output_pdf is not None)
+        pdf_files = tuple(
+            result.output_pdf for result in conversion_results if result.output_pdf is not None
+        )
         failed = [result for result in conversion_results if not result.success]
         if failed:
             notes.append(

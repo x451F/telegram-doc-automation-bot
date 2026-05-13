@@ -15,4 +15,3 @@ def test_amount_to_words_rounding_and_format() -> None:
 
 def test_amount_to_words_singular_unit() -> None:
     assert amount_to_words(Decimal("1.01")) == "One currency unit and 01 cents"
-

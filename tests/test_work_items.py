@@ -19,4 +19,3 @@ def test_load_work_items_catalog(tmp_path: Path) -> None:
     assert len(options) == 2
     assert options[0].code == "analysis"
     assert options[1].label == "Support"
-

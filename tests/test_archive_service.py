@@ -27,4 +27,3 @@ def test_create_archive_creates_zip(tmp_path: Path) -> None:
     with ZipFile(result.archive_path) as archive:
         names = sorted(archive.namelist())
     assert names == ["a.txt", "b.txt"]
-

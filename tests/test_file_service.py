@@ -15,4 +15,3 @@ def test_temporary_working_directory_create_and_cleanup(tmp_path: Path) -> None:
 
     asyncio.run(remove_path(work_dir))
     assert not work_dir.exists()
-

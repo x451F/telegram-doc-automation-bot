@@ -11,4 +11,3 @@ def test_parse_date_supports_multiple_formats() -> None:
 
 def test_format_date_iso_default() -> None:
     assert format_date(date(2026, 4, 14)) == "2026-04-14"
-

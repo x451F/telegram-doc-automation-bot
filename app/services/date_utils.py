@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date, datetime
-from typing import Sequence
-
 
 DEFAULT_INPUT_FORMATS: tuple[str, ...] = (
     "%Y-%m-%d",
@@ -33,4 +32,3 @@ def format_date(value: date, output_format: str = "%Y-%m-%d") -> str:
 def today_iso() -> str:
     """Return current date as ISO string for default form values."""
     return date.today().isoformat()
-

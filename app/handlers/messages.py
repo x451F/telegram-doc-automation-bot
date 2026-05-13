@@ -7,11 +7,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from app.config import AppSettings
-from app.handlers.workflow_helpers import (
-    append_work_item_and_continue,
-    build_auto_amount_in_words,
-    move_to_review_with_auto_amount,
-)
 from app.handlers.prompts import (
     ask_amount_in_words,
     ask_certificate_date,
@@ -25,6 +20,11 @@ from app.handlers.prompts import (
     ask_work_item_count,
     show_payload_review,
 )
+from app.handlers.workflow_helpers import (
+    append_work_item_and_continue,
+    build_auto_amount_in_words,
+    move_to_review_with_auto_amount,
+)
 from app.services.access_control import ensure_message_access
 from app.services.payloads import build_payload
 from app.services.validation import (
@@ -35,7 +35,6 @@ from app.services.validation import (
 )
 from app.services.work_items import WorkItemOption
 from app.states import DocumentWorkflowStates
-
 
 router = Router(name="messages")
 
@@ -289,9 +288,7 @@ async def handle_amount_in_words(
 
 
 @router.message(DocumentWorkflowStates.reviewing_payload, F.text)
-async def handle_review_message(
-    message: Message, settings: AppSettings
-) -> None:
+async def handle_review_message(message: Message, settings: AppSettings) -> None:
     """Guide user to submit/back actions during review state."""
     if not await ensure_message_access(message, settings):
         return

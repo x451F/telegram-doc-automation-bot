@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any
 
 
 @dataclass(slots=True, frozen=True)
@@ -56,4 +57,3 @@ def format_payload_summary(payload: DocumentIntakePayload) -> str:
         f"- Certificate date: {payload.certificate_date}\n"
         f"- Amount in words: {payload.amount_in_words}"
     )
-
