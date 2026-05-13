@@ -130,7 +130,8 @@ async def _navigate_back(
 
     if current_state == DocumentWorkflowStates.reviewing_payload.state:
         await state.set_state(DocumentWorkflowStates.entering_amount_in_words)
-        await ask_amount_in_words(message)
+        suggested = str(data.get("amount_in_words_auto", "")).strip() or None
+        await ask_amount_in_words(message, suggested_value=suggested)
         return
 
 

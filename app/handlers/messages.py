@@ -7,7 +7,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from app.config import AppSettings
-from app.handlers.workflow_helpers import append_work_item_and_continue
+from app.handlers.workflow_helpers import (
+    append_work_item_and_continue,
+    build_auto_amount_in_words,
+    move_to_review_with_auto_amount,
+)
 from app.handlers.prompts import (
     ask_amount_in_words,
     ask_certificate_date,
@@ -181,6 +185,7 @@ async def handle_contract_total_amount(
         return
 
     await state.update_data(contract_total_amount=f"{value:.2f}")
+    await state.update_data(amount_in_words_auto=build_auto_amount_in_words(await state.get_data()))
     await state.set_state(DocumentWorkflowStates.entering_net_amount)
     await ask_net_amount(message)
 
@@ -244,8 +249,7 @@ async def handle_certificate_date(
         return
 
     await state.update_data(certificate_date=value)
-    await state.set_state(DocumentWorkflowStates.entering_amount_in_words)
-    await ask_amount_in_words(message)
+    await move_to_review_with_auto_amount(message, state)
 
 
 @router.message(DocumentWorkflowStates.entering_amount_in_words, F.text)
@@ -257,11 +261,24 @@ async def handle_amount_in_words(
     """Collect amount in words and move to review step."""
     if not await ensure_message_access(message, settings):
         return
+    raw_text = (message.text or "").strip()
+    if raw_text.lower() == "auto":
+        auto_value = str((await state.get_data()).get("amount_in_words_auto", "")).strip()
+        if not auto_value:
+            auto_value = build_auto_amount_in_words(await state.get_data())
+        await state.update_data(amount_in_words=auto_value, amount_in_words_auto=auto_value)
+        data = await state.get_data()
+        payload = build_payload(data)
+        await state.set_state(DocumentWorkflowStates.reviewing_payload)
+        await show_payload_review(message, payload)
+        return
+
     try:
-        value = parse_non_empty_text(message.text or "", "amount_in_words")
+        value = parse_non_empty_text(raw_text, "amount_in_words")
     except ValueError as exc:
         await message.answer(str(exc))
-        await ask_amount_in_words(message)
+        suggested = str((await state.get_data()).get("amount_in_words_auto", "")).strip() or None
+        await ask_amount_in_words(message, suggested_value=suggested)
         return
 
     await state.update_data(amount_in_words=value)

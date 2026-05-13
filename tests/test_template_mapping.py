@@ -25,6 +25,7 @@ def test_build_template_mapping_populates_expected_placeholders() -> None:
     assert mapping.contract["[contract_number]"] == "AGR-2026-011"
     assert mapping.contract["[city]"] == "Paris"
     assert mapping.contract["[contract_total_amount]"] == "1000.00"
+    assert mapping.contract["[contractor_name]"] == "Service Provider"
     assert mapping.completion_certificate["[certificate_amount_text]"] == "Nine hundred currency units"
 
 
@@ -43,4 +44,3 @@ def test_build_template_mapping_collapses_overflow_work_items() -> None:
 
     assert mapping.contract["[contract_work_4]"] == "D"
     assert mapping.contract["[contract_work_5]"] == "E; F"
-

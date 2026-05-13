@@ -1,72 +1,89 @@
 # telegram-docx-workflow-bot
 
-Production-style Telegram bot example built with **Python + aiogram 3** for structured document intake and template-based file generation.
+Production-style Telegram bot built with **Python 3.11**, **aiogram 3**, and
+DOCX templates. The bot collects structured document data through a multi-step
+chat workflow, validates and normalizes the input, renders DOCX files, and can
+optionally convert them to PDF and package all generated artifacts into a ZIP
+archive.
 
-This repository is designed as a reusable reference for:
+The project is meant to be a practical reference for Telegram-based document
+automation without introducing a large web stack.
 
-- FSM-driven chat workflows,
-- DOCX template rendering with placeholders,
-- optional PDF conversion with graceful backend fallback,
-- ZIP export and safe temporary file lifecycle.
+## What It Does
 
-## Why This Project
+- Runs an FSM-based intake workflow for service agreements and completion
+  certificates.
+- Collects contract details, dates, work items, monetary amounts, and certificate
+  details step by step.
+- Validates and normalizes user input before document generation.
+- Renders `.docx` templates with neutral placeholders.
+- Generates two output documents per completed workflow:
+  - service agreement;
+  - completion certificate.
+- Converts DOCX files to PDF when enabled and when a backend is available.
+- Creates an optional ZIP archive containing the generated files.
+- Uses isolated temporary directories for each generation flow.
+- Cleans temporary files after Telegram delivery when configured.
 
-Many teams need lightweight automation for service documents but do not need a large web stack.  
-This project demonstrates a clean architecture for collecting structured data in Telegram and producing export-ready files in a maintainable way.
+## Architecture & Reliability
 
-## Feature Highlights
+The bot is structured around a document workflow rather than a single command
+handler. Telegram handlers are responsible for interaction and FSM transitions;
+document processing lives in services.
 
-- Multi-step FSM intake flow with validation and back/cancel navigation
-- Generic payload fields (`contract_number`, `contract_date`, `work_items`, etc.)
-- DOCX generation from neutral placeholders in paragraphs and table cells
-- Optional PDF conversion (`docx2pdf` then `soffice` fallback)
-- Optional ZIP bundle generation
-- Safe per-request temporary workspace + optional cleanup
-- Config-driven behavior via environment variables
-- Lint-ready and CI-ready project structure
+```text
+Telegram user
+  -> aiogram handlers
+  -> FSM state storage
+  -> validation / normalization
+  -> typed payload
+  -> template placeholder mapping
+  -> DOCX generation
+  -> optional PDF conversion
+  -> optional ZIP packaging
+  -> Telegram file delivery
+```
 
-## Architecture Overview
+Key reliability choices:
 
-High-level modules:
-
-- `app/handlers`: user interaction and FSM transitions only
-- `app/keyboards`: reusable Telegram keyboard builders
-- `app/services`: validation, mapping, rendering, conversion, archiving, file lifecycle
-- `app/templates`: demo DOCX templates
-- `app/data`: configurable workflow catalogs
-- `docs`: architecture and portfolio notes
-- `tests`: utility-focused test coverage
-
-The core principle is strict separation between interaction and processing logic.
+- FSM state management keeps multi-step user input explicit and recoverable.
+- Back and cancel navigation are handled separately from business logic.
+- Validation happens before payload construction and document rendering.
+- PDF conversion is optional and uses fallback order:
+  `docx2pdf` -> `soffice`, unless a preferred backend is configured.
+- PDF failures do not block DOCX delivery.
+- ZIP failures do not block individual file delivery.
+- Each export runs in a temporary workspace under `OUTPUT_DIR`.
+- Cleanup is controlled by `CLEANUP_TEMP_FILES`.
+- Configuration is environment-based and loaded from `.env`.
 
 ## Project Structure
 
 ```text
 app/
-  bot.py
-  config.py
-  states.py
-  handlers/
-  keyboards/
-  services/
-  data/
-  templates/
+  bot.py                    # aiogram bootstrap and long polling entrypoint
+  config.py                 # environment-based settings
+  states.py                 # FSM state definitions
+  handlers/                 # Telegram commands, callbacks, messages, navigation
+  keyboards/                # reusable inline/reply keyboard builders
+  services/                 # validation, rendering, PDF, ZIP, file lifecycle
+  data/                     # workflow catalog data
+  templates/                # DOCX templates used at runtime
 docs/
-  architecture.md
-  portfolio_notes.md
-tests/
-.github/workflows/
+  architecture.md           # architecture notes
+  portfolio_notes.md        # project positioning notes
+  templates/                # readable Markdown drafts of templates
+tests/                      # focused unit tests
+.github/workflows/          # CI lint workflow
 ```
 
-## Setup
-
-### Requirements
+## Requirements
 
 - Python 3.11+
-- Telegram bot token
-- Optional for PDF fallback: LibreOffice (`soffice`) on `PATH`
+- Telegram bot token from BotFather
+- Optional: LibreOffice available as `soffice` on `PATH` for PDF fallback
 
-### Local Installation
+## Setup
 
 ```bash
 python -m venv .venv
@@ -75,109 +92,175 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-### Run
+Edit `.env` and set:
+
+```env
+BOT_TOKEN=replace-with-your-bot-token
+```
+
+Run the bot:
 
 ```bash
 python -m app.bot
 ```
 
-## Example Workflow
+You can also install from `requirements.txt` for a simpler runtime setup:
 
-1. Start with `/new` or **Start Intake Workflow**
-2. Choose document type
-3. Enter contract number/date
-4. Select work item count and items
-5. Enter amounts
-6. Enter certificate number/date
-7. Enter amount in words
-8. Submit payload
-9. Receive generated DOCX files
-10. Receive PDF files when conversion backend is available
-11. Receive ZIP archive when enabled
+```bash
+pip install -r requirements.txt
+```
 
-## Templates and Placeholders
+## Configuration
 
-Template files:
+| Variable | Default | Description |
+|---|---:|---|
+| `BOT_TOKEN` | required | Telegram bot token. |
+| `PARSE_MODE` | `HTML` | Default Telegram parse mode. |
+| `LOG_LEVEL` | `INFO` | Python logging level. |
+| `OUTPUT_DIR` | `./output` | Base directory for generated artifacts. |
+| `TEMPLATES_DIR` | `./app/templates` | Directory containing runtime `.docx` templates. |
+| `DATA_DIR` | `./app/data` | Directory for workflow data files. |
+| `WORK_ITEMS_FILE` | `./app/data/work_items.example.json` | Work item catalog used by inline selection. |
+| `ENABLE_PDF_CONVERSION` | `false` | Enables DOCX to PDF conversion. |
+| `PDF_BACKEND` | `auto` | `auto`, `docx2pdf`, or `soffice`. |
+| `ENABLE_ZIP_EXPORT` | `true` | Enables ZIP bundle generation. |
+| `CLEANUP_TEMP_FILES` | `true` | Removes temporary export directories after delivery. |
+| `ALLOWED_TEMPLATE_EXTENSIONS` | `.docx` | Allowed template file extensions. |
+| `DEFAULT_CITY` | `Sample City` | City value injected into templates. |
+| `WORKING_DIR_PREFIX` | `job` | Prefix for temporary generation folders. |
+| `ADMIN_ALLOWLIST` | empty | Comma-separated Telegram user IDs. Empty means all users are allowed. |
+
+## User Workflow
+
+1. User starts with `/new` or the main menu.
+2. Bot asks for the document type.
+3. User enters or selects contract number and contract date.
+4. User chooses how many work items to include.
+5. User selects catalog work items or enters custom text.
+6. User enters contract total amount and net amount.
+7. User enters certificate number and certificate date.
+8. Bot automatically generates the amount in words.
+9. User reviews the collected payload.
+10. User submits, goes back to edit, or cancels.
+11. Bot sends generated DOCX files, optional PDFs, and optional ZIP archive.
+
+## Templates
+
+Runtime templates live in:
 
 - `app/templates/contract_template.docx`
 - `app/templates/completion_certificate_template.docx`
 
-Readable source drafts:
+Readable source drafts live in:
 
 - `docs/templates/contract_template.md`
 - `docs/templates/completion_certificate_template.md`
 
-### Placeholder Reference
+Supported placeholders include:
 
 | Placeholder | Description |
 |---|---|
-| `[contract_number]` | Service agreement number |
-| `[contract_date]` | Service agreement date |
-| `[city]` | City value from config (`DEFAULT_CITY`) |
-| `[contract_total_amount]` | Contract total amount |
-| `[net_amount]` | Net amount |
-| `[certificate_number]` | Completion certificate number |
-| `[certificate_date]` | Completion certificate date |
-| `[certificate_amount]` | Certificate amount |
-| `[certificate_amount_text]` | Certificate amount in words |
-| `[contract_work_1]` ... `[contract_work_5]` | Agreement work item slots |
-| `[certificate_work_1]` ... `[certificate_work_5]` | Certificate work item slots |
+| `[contract_number]` | Service agreement number. |
+| `[contract_date]` | Service agreement date. |
+| `[city]` | City from `DEFAULT_CITY`. |
+| `[contract_total_amount]` | Contract total amount. |
+| `[net_amount]` | Net amount. |
+| `[certificate_number]` | Completion certificate number. |
+| `[certificate_date]` | Completion certificate date. |
+| `[certificate_amount]` | Certificate amount. |
+| `[certificate_amount_text]` | Amount in words. |
+| `[contractor_name]` | Default contractor name. |
+| `[contractor_details]` | Default contractor details. |
+| `[client_name]` | Default client name. |
+| `[client_representative]` | Default client representative. |
+| `[client_details]` | Default client details. |
+| `[client_basis]` | Default client basis text. |
+| `[additional_notes]` | Reserved optional notes field. |
+| `[contract_work_1]` ... `[contract_work_5]` | Agreement work item slots. |
+| `[certificate_work_1]` ... `[certificate_work_5]` | Certificate work item slots. |
 
-## PDF and ZIP Notes
+If more than five work items are collected, the mapping layer preserves the
+first four slots and collapses the remaining items into the fifth slot.
 
-- PDF conversion is optional (`ENABLE_PDF_CONVERSION=true`)
-- Backend strategy is configurable (`PDF_BACKEND=auto|docx2pdf|soffice`)
-- If no PDF backend is available, the bot still returns DOCX files
-- ZIP export is optional (`ENABLE_ZIP_EXPORT=true`)
-- ZIP errors do not break DOCX/PDF delivery
+## PDF and ZIP Behavior
 
-## Environment Example
+PDF conversion is controlled by:
 
 ```env
-BOT_TOKEN=replace-with-your-bot-token
-OUTPUT_DIR=./output
-TEMPLATES_DIR=./app/templates
-WORKING_DIR_PREFIX=job
-
 ENABLE_PDF_CONVERSION=true
 PDF_BACKEND=auto
-ENABLE_ZIP_EXPORT=true
-CLEANUP_TEMP_FILES=true
-
-DEFAULT_CITY=Sample City
-ADMIN_ALLOWLIST=
 ```
 
+Supported PDF backends:
+
+- `docx2pdf`, available through the optional Python dependency;
+- `soffice`, available through LibreOffice.
+
+When `PDF_BACKEND=auto`, the bot tries `docx2pdf` first and then `soffice`.
+If conversion fails, the bot still delivers DOCX files and reports a note to the
+user.
+
+ZIP export is controlled by:
+
+```env
+ENABLE_ZIP_EXPORT=true
+```
+
+If ZIP generation fails, individual DOCX and PDF files are still delivered.
+
 ## Development
+
+Run tests:
+
+```bash
+pytest
+```
+
+Run lint and formatting checks:
 
 ```bash
 ruff check .
 ruff format --check .
-pytest
 ```
 
-CI runs lint checks on pushes and pull requests to `main`.
-See also:
+Install optional PDF support:
 
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [CHANGELOG.md](CHANGELOG.md)
+```bash
+pip install -e ".[pdf]"
+```
+
+CI runs Ruff checks on pushes and pull requests to `main`.
 
 ## Troubleshooting
 
-1. PDF not generated:
-Install `docx2pdf` (`pip install -e ".[pdf]"`) or install LibreOffice (`soffice`).
-2. ZIP missing:
-Check `ENABLE_ZIP_EXPORT` and output directory write permissions.
-3. Template errors:
-Confirm both DOCX templates exist in `app/templates`.
-4. Access denied:
-If `ADMIN_ALLOWLIST` is set, verify the Telegram numeric user ID.
+**Bot fails on startup**
 
-## Next Improvements
+Check that `BOT_TOKEN` is set in `.env` or the process environment.
 
-1. Add async integration tests for the full FSM flow.
-2. Support localized template packs and per-chat template selection.
-3. Add observability hooks (metrics + structured event IDs).
+**PDF files are not generated**
+
+Enable `ENABLE_PDF_CONVERSION=true` and install either `docx2pdf` or
+LibreOffice. DOCX output should still be generated without PDF support.
+
+**ZIP archive is missing**
+
+Check `ENABLE_ZIP_EXPORT=true` and verify that `OUTPUT_DIR` is writable.
+
+**Template rendering fails**
+
+Verify that both runtime DOCX templates exist in `app/templates` and that the
+placeholder names match the supported placeholder list.
+
+**User is denied access**
+
+If `ADMIN_ALLOWLIST` is set, make sure it contains the numeric Telegram user ID.
+
+## Documentation
+
+- [Architecture notes](docs/architecture.md)
+- [Portfolio notes](docs/portfolio_notes.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 

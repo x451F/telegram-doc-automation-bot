@@ -129,12 +129,16 @@ async def ask_certificate_date(message: Message) -> None:
     )
 
 
-async def ask_amount_in_words(message: Message) -> None:
-    """Prompt for amount in words."""
-    await message.answer(
-        "Enter `amount_in_words` in plain English text.",
-        reply_markup=build_back_keyboard(),
-    )
+async def ask_amount_in_words(message: Message, suggested_value: str | None = None) -> None:
+    """Prompt for amount in words with optional auto-generated suggestion."""
+    text = "Enter `amount_in_words` in plain English text."
+    if suggested_value:
+        text = (
+            f"{text}\n"
+            f"Suggested value: {suggested_value}\n"
+            "Send `auto` to use the suggested text."
+        )
+    await message.answer(text, reply_markup=build_back_keyboard())
 
 
 async def show_payload_review(message: Message, payload: DocumentIntakePayload) -> None:
@@ -143,4 +147,3 @@ async def show_payload_review(message: Message, payload: DocumentIntakePayload) 
         format_payload_summary(payload),
         reply_markup=build_review_keyboard(),
     )
-

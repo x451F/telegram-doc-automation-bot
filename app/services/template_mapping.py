@@ -10,6 +10,12 @@ from app.services.text_utils import normalize_whitespace
 
 MAX_WORK_PLACEHOLDERS = 5
 DEFAULT_CITY = "Sample City"
+DEFAULT_CONTRACTOR_NAME = "Service Provider"
+DEFAULT_CONTRACTOR_DETAILS = "Provider details"
+DEFAULT_CLIENT_NAME = "Client"
+DEFAULT_CLIENT_REPRESENTATIVE = "Authorized representative"
+DEFAULT_CLIENT_DETAILS = "Client details"
+DEFAULT_CLIENT_BASIS = "Service agreement terms"
 
 
 @dataclass(slots=True, frozen=True)
@@ -66,6 +72,13 @@ def build_template_mapping(
         "[certificate_date]": payload.certificate_date,
         "[certificate_amount]": _format_amount(payload.contract_total_amount),
         "[certificate_amount_text]": payload.amount_in_words,
+        "[contractor_name]": DEFAULT_CONTRACTOR_NAME,
+        "[contractor_details]": DEFAULT_CONTRACTOR_DETAILS,
+        "[client_name]": DEFAULT_CLIENT_NAME,
+        "[client_representative]": DEFAULT_CLIENT_REPRESENTATIVE,
+        "[client_details]": DEFAULT_CLIENT_DETAILS,
+        "[client_basis]": DEFAULT_CLIENT_BASIS,
+        "[additional_notes]": "",
     }
 
     contract_mapping = {
@@ -83,4 +96,3 @@ def build_template_mapping(
         contract=contract_mapping,
         completion_certificate=completion_mapping,
     )
-

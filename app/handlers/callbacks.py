@@ -12,10 +12,11 @@ from aiogram.types import CallbackQuery, FSInputFile
 from app.config import AppSettings
 from app.handlers.workflow_helpers import (
     append_work_item_and_continue,
+    build_auto_amount_in_words,
     get_callback_message,
+    move_to_review_with_auto_amount,
 )
 from app.handlers.prompts import (
-    ask_amount_in_words,
     ask_certificate_date,
     ask_certificate_number,
     ask_contract_date,
@@ -174,8 +175,7 @@ async def handle_day_picker_callback(
         await ask_work_item_count(message)
         return
 
-    await state.set_state(DocumentWorkflowStates.entering_amount_in_words)
-    await ask_amount_in_words(message)
+    await move_to_review_with_auto_amount(message, state)
 
 
 @router.callback_query(F.data.startswith(WORK_COUNT_PREFIX))
@@ -317,6 +317,7 @@ async def handle_amount_preset_callback(
 
     if current_state == DocumentWorkflowStates.entering_contract_total_amount.state:
         await state.update_data(contract_total_amount=f"{amount:.2f}")
+        await state.update_data(amount_in_words_auto=build_auto_amount_in_words(await state.get_data()))
         await state.set_state(DocumentWorkflowStates.entering_net_amount)
         await callback.answer("Contract total amount selected.")
         await ask_net_amount(message)
